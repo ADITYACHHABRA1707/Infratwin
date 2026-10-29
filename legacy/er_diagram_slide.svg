@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1150" viewBox="0 0 2400 1150" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<defs><style>.tname{font-size:24px;font-weight:700}.col{font-size:18px;font-family:ui-monospace,Menlo,Consolas,monospace}.typ{font-size:14.5px;font-family:ui-monospace,Menlo,Consolas,monospace}.note{font-size:14.5px}.chip{font-size:11px;font-weight:700;font-family:ui-monospace,Menlo,monospace}.rel{font-size:15px;font-weight:600}.lg{font-size:15px}</style><marker id="crow2" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" orient="auto"><path d="M11,6 L0,0 M11,6 L0,12 M11,6 L0,6" fill="none" stroke="#9aa3b2" stroke-width="1.7"/></marker><marker id="one2" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto"><path d="M6,1 L6,11" fill="none" stroke="#9aa3b2" stroke-width="2"/></marker></defs>
+<rect width="2400" height="1150" fill="#ffffff"/>
+<path d="M467.4,248.0 C513.4,248.0 649,186.0 695,186.0" fill="none" stroke="#9aa3b2" stroke-width="1.9" marker-start="url(#crow2)" marker-end="url(#one2)"/>
+<rect x="474.30000000000007" y="190.0" width="213.79999999999998" height="22" rx="5" fill="#ffffff" opacity="0.95"/>
+<text x="482.30000000000007" y="206.0" class="rel" fill="#6b7280">asset_id + dependent_id</text>
+<path d="M1330,264.0 C1284,264.0 1148.2,186.0 1102.2,186.0" fill="none" stroke="#9aa3b2" stroke-width="1.9" marker-start="url(#crow2)" marker-end="url(#one2)"/>
+<rect x="1169.3999999999999" y="198.0" width="93.39999999999999" height="22" rx="5" fill="#ffffff" opacity="0.95"/>
+<text x="1177.3999999999999" y="214.0" class="rel" fill="#6b7280">occurs on</text>
+<path d="M898.6,400 L898.6,316" fill="none" stroke="#9aa3b2" stroke-width="1.9" marker-start="url(#crow2)" marker-end="url(#one2)"/>
+<rect x="902.6" y="346.0" width="84.8" height="22" rx="5" fill="#ffffff" opacity="0.95"/>
+<text x="910.6" y="362.0" class="rel" fill="#6b7280">measures</text>
+<path d="M905.8,772 C905.8,748.0 898.6,748.0 898.6,724" fill="none" stroke="#9aa3b2" stroke-width="1.9" marker-start="url(#crow2)" marker-end="url(#one2)"/>
+<rect x="906.2" y="736.0" width="102.0" height="22" rx="5" fill="#ffffff" opacity="0.95"/>
+<text x="914.2" y="752.0" class="rel" fill="#6b7280">aggregates</text>
+<path d="M1955,186.0 C1909,186.0 1840.8,264.0 1794.8,264.0" fill="none" stroke="#9aa3b2" stroke-width="1.9" marker-start="url(#crow2)" marker-end="url(#one2)"/>
+<rect x="1811.0" y="198.0" width="127.8" height="22" rx="5" fill="#ffffff" opacity="0.95"/>
+<text x="1819.0" y="214.0" class="rel" fill="#6b7280">documents 1:1</text>
+<path d="M2176.6,430 C2176.6,373.0 2120.0,373.0 2120.0,316" fill="none" stroke="#9aa3b2" stroke-width="1.9" stroke-dasharray="6 5" marker-start="url(#crow2)" marker-end="url(#one2)"/>
+<rect x="2152.3" y="361.0" width="76.19999999999999" height="22" rx="5" fill="#ffffff" opacity="0.95"/>
+<text x="2160.3" y="377.0" class="rel" fill="#6b7280">trigger</text>
+<rect x="52" y="150" width="415.4" height="196" rx="10" fill="#ffffff" stroke="#0e7490" stroke-width="2"/>
+<path d="M52,196 L52,160 Q52,150 62,150 L457.4,150 Q467.4,150 467.4,160 L467.4,196 Z" fill="#0e7490"/>
+<text x="67" y="181" class="tname" fill="#ffffff">asset_dependencies</text>
+<text x="67" y="226" class="col" fill="#1a1f36" font-weight="700">asset_id</text>
+<text x="167.4" y="226" class="typ" fill="#6b7280">integer</text>
+<rect x="417.59999999999997" y="211" width="29.8" height="20" rx="5" fill="#0e7490" opacity="0.15"/>
+<text x="424.09999999999997" y="225" class="chip" fill="#0e7490">FK</text>
+<rect x="382.79999999999995" y="211" width="29.8" height="20" rx="5" fill="#4338ca" opacity="0.15"/>
+<text x="389.29999999999995" y="225" class="chip" fill="#4338ca">PK</text>
+<rect x="54" y="236" width="411.4" height="32" fill="#ecfeff"/>
+<text x="67" y="258" class="col" fill="#1a1f36" font-weight="700">dependent_id</text>
+<text x="210.60000000000002" y="258" class="typ" fill="#6b7280">integer</text>
+<rect x="417.59999999999997" y="243" width="29.8" height="20" rx="5" fill="#0e7490" opacity="0.15"/>
+<text x="424.09999999999997" y="257" class="chip" fill="#0e7490">FK</text>
+<rect x="382.79999999999995" y="243" width="29.8" height="20" rx="5" fill="#4338ca" opacity="0.15"/>
+<text x="389.29999999999995" y="257" class="chip" fill="#4338ca">PK</text>
+<text x="67" y="290" class="col" fill="#1a1f36">dependency_type</text>
+<text x="243.0" y="290" class="typ" fill="#6b7280">text</text>
+<rect x="417.59999999999997" y="275" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="424.09999999999997" y="289" class="chip" fill="#5B6677">NN</text>
+<line x1="67" y1="309" x2="452.4" y2="309" stroke="#0e7490" stroke-width="0.9" opacity="0.32"/>
+<text x="67" y="329" class="note" fill="#6b7280">CHECK dependency_type IN (feeds, powers, cools)</text>
+<rect x="695" y="56" width="407.2" height="260" rx="10" fill="#ffffff" stroke="#4338ca" stroke-width="2"/>
+<path d="M695,102 L695,66 Q695,56 705,56 L1092.2,56 Q1102.2,56 1102.2,66 L1102.2,102 Z" fill="#4338ca"/>
+<text x="710" y="87" class="tname" fill="#ffffff">assets</text>
+<text x="710" y="132" class="col" fill="#1a1f36" font-weight="700">asset_id</text>
+<text x="810.4" y="132" class="typ" fill="#6b7280">integer</text>
+<rect x="1052.4" y="117" width="29.8" height="20" rx="5" fill="#4338ca" opacity="0.15"/>
+<text x="1058.9" y="131" class="chip" fill="#4338ca">PK</text>
+<rect x="697" y="142" width="403.2" height="32" fill="#eef2ff"/>
+<text x="710" y="164" class="col" fill="#1a1f36">name</text>
+<text x="767.2" y="164" class="typ" fill="#6b7280">text</text>
+<rect x="1052.4" y="149" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1058.9" y="163" class="chip" fill="#5B6677">NN</text>
+<rect x="1017.6000000000001" y="149" width="29.8" height="20" rx="5" fill="#b45309" opacity="0.15"/>
+<text x="1024.1000000000001" y="163" class="chip" fill="#b45309">UQ</text>
+<text x="710" y="196" class="col" fill="#1a1f36">asset_type</text>
+<text x="832.0" y="196" class="typ" fill="#6b7280">text</text>
+<rect x="1052.4" y="181" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1058.9" y="195" class="chip" fill="#5B6677">NN</text>
+<rect x="697" y="206" width="403.2" height="32" fill="#eef2ff"/>
+<text x="710" y="228" class="col" fill="#1a1f36">location</text>
+<text x="810.4" y="228" class="typ" fill="#6b7280">text</text>
+<text x="710" y="260" class="col" fill="#1a1f36">install_date</text>
+<text x="853.6" y="260" class="typ" fill="#6b7280">date</text>
+<rect x="1052.4" y="245" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1058.9" y="259" class="chip" fill="#5B6677">NN</text>
+<line x1="710" y1="279" x2="1087.2" y2="279" stroke="#4338ca" stroke-width="0.9" opacity="0.32"/>
+<text x="710" y="299" class="note" fill="#6b7280">CHECK asset_type IN (Plant, Line, Pump, Motor)</text>
+<rect x="1330" y="150" width="464.8" height="228" rx="10" fill="#ffffff" stroke="#4338ca" stroke-width="2"/>
+<path d="M1330,196 L1330,160 Q1330,150 1340,150 L1784.8,150 Q1794.8,150 1794.8,160 L1794.8,196 Z" fill="#4338ca"/>
+<text x="1345" y="181" class="tname" fill="#ffffff">failure_events</text>
+<text x="1345" y="226" class="col" fill="#1a1f36" font-weight="700">event_id</text>
+<text x="1445.4" y="226" class="typ" fill="#6b7280">integer</text>
+<rect x="1745.0" y="211" width="29.8" height="20" rx="5" fill="#4338ca" opacity="0.15"/>
+<text x="1751.5" y="225" class="chip" fill="#4338ca">PK</text>
+<rect x="1332" y="236" width="460.8" height="32" fill="#eef2ff"/>
+<text x="1345" y="258" class="col" fill="#1a1f36">asset_id</text>
+<text x="1445.4" y="258" class="typ" fill="#6b7280">integer</text>
+<rect x="1745.0" y="243" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1751.5" y="257" class="chip" fill="#5B6677">NN</text>
+<rect x="1710.2" y="243" width="29.8" height="20" rx="5" fill="#0e7490" opacity="0.15"/>
+<text x="1716.7" y="257" class="chip" fill="#0e7490">FK</text>
+<text x="1345" y="290" class="col" fill="#1a1f36">event_time</text>
+<text x="1467.0" y="290" class="typ" fill="#6b7280">timestamp with time zone</text>
+<rect x="1745.0" y="275" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1751.5" y="289" class="chip" fill="#5B6677">NN</text>
+<rect x="1332" y="300" width="460.8" height="32" fill="#eef2ff"/>
+<text x="1345" y="322" class="col" fill="#1a1f36">failure_type</text>
+<text x="1488.6" y="322" class="typ" fill="#6b7280">text</text>
+<rect x="1745.0" y="307" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1751.5" y="321" class="chip" fill="#5B6677">NN</text>
+<line x1="1345" y1="341" x2="1779.8" y2="341" stroke="#4338ca" stroke-width="0.9" opacity="0.32"/>
+<text x="1345" y="361" class="note" fill="#6b7280">CHECK failure_type IN (TWF, HDF, PWF, OSF, RNF)</text>
+<rect x="1955" y="56" width="330" height="260" rx="10" fill="#ffffff" stroke="#9d174d" stroke-width="2"/>
+<path d="M1955,102 L1955,66 Q1955,56 1965,56 L2275,56 Q2285,56 2285,66 L2285,102 Z" fill="#9d174d"/>
+<text x="1970" y="87" class="tname" fill="#ffffff">maintenance_reports</text>
+<text x="1970" y="132" class="col" fill="#1a1f36" font-weight="700">report_id</text>
+<text x="2081.2" y="132" class="typ" fill="#6b7280">integer</text>
+<rect x="2235.2" y="117" width="29.8" height="20" rx="5" fill="#4338ca" opacity="0.15"/>
+<text x="2241.7" y="131" class="chip" fill="#4338ca">PK</text>
+<rect x="1957" y="142" width="326" height="32" fill="#fdf2f8"/>
+<text x="1970" y="164" class="col" fill="#1a1f36">event_id</text>
+<text x="2070.4" y="164" class="typ" fill="#6b7280">integer</text>
+<rect x="2235.2" y="149" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="2241.7" y="163" class="chip" fill="#5B6677">NN</text>
+<rect x="2200.3999999999996" y="149" width="29.8" height="20" rx="5" fill="#b45309" opacity="0.15"/>
+<text x="2206.8999999999996" y="163" class="chip" fill="#b45309">UQ</text>
+<rect x="2165.5999999999995" y="149" width="29.8" height="20" rx="5" fill="#0e7490" opacity="0.15"/>
+<text x="2172.0999999999995" y="163" class="chip" fill="#0e7490">FK</text>
+<text x="1970" y="196" class="col" fill="#1a1f36">summary</text>
+<text x="2059.6" y="196" class="typ" fill="#6b7280">text</text>
+<rect x="2235.2" y="181" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="2241.7" y="195" class="chip" fill="#5B6677">NN</text>
+<rect x="1957" y="206" width="326" height="32" fill="#fdf2f8"/>
+<text x="1970" y="228" class="col" fill="#1a1f36">action_taken</text>
+<text x="2113.6" y="228" class="typ" fill="#6b7280">text</text>
+<rect x="2235.2" y="213" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="2241.7" y="227" class="chip" fill="#5B6677">NN</text>
+<text x="1970" y="260" class="col" fill="#1a1f36">embedding</text>
+<text x="2081.2" y="260" class="typ" fill="#6b7280">vector(384)</text>
+<line x1="1970" y1="279" x2="2270" y2="279" stroke="#9d174d" stroke-width="0.9" opacity="0.32"/>
+<text x="1970" y="299" class="note" fill="#6b7280">HNSW index on embedding (cosine)</text>
+<rect x="695" y="400" width="407.2" height="324" rx="10" fill="#ffffff" stroke="#b45309" stroke-width="2"/>
+<path d="M695,446 L695,410 Q695,400 705,400 L1092.2,400 Q1102.2,400 1102.2,410 L1102.2,446 Z" fill="#b45309"/>
+<text x="710" y="431" class="tname" fill="#ffffff">sensor_readings</text>
+<text x="710" y="476" class="col" fill="#1a1f36">time</text>
+<text x="767.2" y="476" class="typ" fill="#6b7280">timestamp with time zone</text>
+<rect x="1052.4" y="461" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1058.9" y="475" class="chip" fill="#5B6677">NN</text>
+<rect x="697" y="486" width="403.2" height="32" fill="#fffbeb"/>
+<text x="710" y="508" class="col" fill="#1a1f36">asset_id</text>
+<text x="810.4" y="508" class="typ" fill="#6b7280">integer</text>
+<rect x="1052.4" y="493" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="1058.9" y="507" class="chip" fill="#5B6677">NN</text>
+<rect x="1017.6000000000001" y="493" width="29.8" height="20" rx="5" fill="#0e7490" opacity="0.15"/>
+<text x="1024.1000000000001" y="507" class="chip" fill="#0e7490">FK</text>
+<text x="710" y="540" class="col" fill="#1a1f36">air_temp</text>
+<text x="810.4" y="540" class="typ" fill="#6b7280">real</text>
+<rect x="697" y="550" width="403.2" height="32" fill="#fffbeb"/>
+<text x="710" y="572" class="col" fill="#1a1f36">process_temp</text>
+<text x="853.6" y="572" class="typ" fill="#6b7280">real</text>
+<text x="710" y="604" class="col" fill="#1a1f36">rpm</text>
+<text x="756.4" y="604" class="typ" fill="#6b7280">integer</text>
+<rect x="697" y="614" width="403.2" height="32" fill="#fffbeb"/>
+<text x="710" y="636" class="col" fill="#1a1f36">torque</text>
+<text x="788.8" y="636" class="typ" fill="#6b7280">real</text>
+<text x="710" y="668" class="col" fill="#1a1f36">tool_wear</text>
+<text x="821.2" y="668" class="typ" fill="#6b7280">integer</text>
+<line x1="710" y1="687" x2="1087.2" y2="687" stroke="#b45309" stroke-width="0.9" opacity="0.32"/>
+<text x="710" y="707" class="note" fill="#6b7280">PARTITION BY RANGE (time), 1 day per partition</text>
+<rect x="695" y="772" width="421.6" height="292" rx="10" fill="#ffffff" stroke="#b45309" stroke-width="2"/>
+<path d="M695,818 L695,782 Q695,772 705,772 L1106.6,772 Q1116.6,772 1116.6,782 L1116.6,818 Z" fill="#b45309"/>
+<text x="710" y="803" class="tname" fill="#ffffff">readings_hourly</text>
+<rect x="1048.6" y="784" width="54" height="21" rx="10" fill="#ffffff" opacity="0.28"/>
+<text x="1055.6" y="799" class="chip" fill="#ffffff">VIEW</text>
+<text x="710" y="848" class="col" fill="#1a1f36">bucket</text>
+<text x="788.8" y="848" class="typ" fill="#6b7280">timestamp with time zone</text>
+<rect x="697" y="858" width="417.6" height="32" fill="#fffbeb"/>
+<text x="710" y="880" class="col" fill="#1a1f36">asset_id</text>
+<text x="810.4" y="880" class="typ" fill="#6b7280">integer</text>
+<text x="710" y="912" class="col" fill="#1a1f36">avg_temp</text>
+<text x="810.4" y="912" class="typ" fill="#6b7280">double</text>
+<rect x="697" y="922" width="417.6" height="32" fill="#fffbeb"/>
+<text x="710" y="944" class="col" fill="#1a1f36">avg_torque</text>
+<text x="832.0" y="944" class="typ" fill="#6b7280">double</text>
+<text x="710" y="976" class="col" fill="#1a1f36">avg_rpm</text>
+<text x="799.6" y="976" class="typ" fill="#6b7280">numeric</text>
+<rect x="697" y="986" width="417.6" height="32" fill="#fffbeb"/>
+<text x="710" y="1008" class="col" fill="#1a1f36">max_wear</text>
+<text x="810.4" y="1008" class="typ" fill="#6b7280">integer</text>
+<line x1="710" y1="1027" x2="1101.6" y2="1027" stroke="#b45309" stroke-width="0.9" opacity="0.32"/>
+<text x="710" y="1047" class="note" fill="#6b7280">MATERIALIZED VIEW over sensor_readings</text>
+<rect x="1955" y="430" width="443.20000000000005" height="292" rx="10" fill="#ffffff" stroke="#15803d" stroke-width="2"/>
+<path d="M1955,476 L1955,440 Q1955,430 1965,430 L2388.2,430 Q2398.2,430 2398.2,440 L2398.2,476 Z" fill="#15803d"/>
+<text x="1970" y="461" class="tname" fill="#ffffff">audit_logs</text>
+<text x="1970" y="506" class="col" fill="#1a1f36" font-weight="700">log_id</text>
+<text x="2048.8" y="506" class="typ" fill="#6b7280">bigint</text>
+<rect x="2348.3999999999996" y="491" width="29.8" height="20" rx="5" fill="#4338ca" opacity="0.15"/>
+<text x="2354.8999999999996" y="505" class="chip" fill="#4338ca">PK</text>
+<rect x="1957" y="516" width="439.20000000000005" height="32" fill="#f0fdf4"/>
+<text x="1970" y="538" class="col" fill="#1a1f36">entity</text>
+<text x="2048.8" y="538" class="typ" fill="#6b7280">text</text>
+<rect x="2348.3999999999996" y="523" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="2354.8999999999996" y="537" class="chip" fill="#5B6677">NN</text>
+<text x="1970" y="570" class="col" fill="#1a1f36">action</text>
+<text x="2048.8" y="570" class="typ" fill="#6b7280">text</text>
+<rect x="2348.3999999999996" y="555" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="2354.8999999999996" y="569" class="chip" fill="#5B6677">NN</text>
+<rect x="1957" y="580" width="439.20000000000005" height="32" fill="#f0fdf4"/>
+<text x="1970" y="602" class="col" fill="#1a1f36">row_pk</text>
+<text x="2048.8" y="602" class="typ" fill="#6b7280">integer</text>
+<text x="1970" y="634" class="col" fill="#1a1f36">log_time</text>
+<text x="2070.4" y="634" class="typ" fill="#6b7280">timestamp with time zone</text>
+<rect x="2348.3999999999996" y="619" width="29.8" height="20" rx="5" fill="#5B6677" opacity="0.15"/>
+<text x="2354.8999999999996" y="633" class="chip" fill="#5B6677">NN</text>
+<rect x="1957" y="644" width="439.20000000000005" height="32" fill="#f0fdf4"/>
+<text x="1970" y="666" class="col" fill="#1a1f36">details</text>
+<text x="2059.6" y="666" class="typ" fill="#6b7280">text</text>
+<line x1="1970" y1="685" x2="2383.2" y2="685" stroke="#15803d" stroke-width="0.9" opacity="0.32"/>
+<text x="1970" y="705" class="note" fill="#6b7280">Filled by trg_report_audit</text>
+<rect x="52" y="1092" width="17" height="17" rx="4" fill="#4338ca"/>
+<text x="77" y="1105" class="lg" fill="#1a1f36">Relational core</text>
+<rect x="231.0" y="1092" width="17" height="17" rx="4" fill="#0e7490"/>
+<text x="256.0" y="1105" class="lg" fill="#1a1f36">Graph (recursive)</text>
+<rect x="426.4" y="1092" width="17" height="17" rx="4" fill="#b45309"/>
+<text x="451.4" y="1105" class="lg" fill="#1a1f36">Time-series</text>
+<rect x="572.5999999999999" y="1092" width="17" height="17" rx="4" fill="#9d174d"/>
+<text x="597.5999999999999" y="1105" class="lg" fill="#1a1f36">Vector search</text>
+<rect x="735.1999999999999" y="1092" width="17" height="17" rx="4" fill="#15803d"/>
+<text x="760.1999999999999" y="1105" class="lg" fill="#1a1f36">Audit</text>
+<text x="852.1999999999999" y="1105" class="lg" fill="#6b7280">crow's foot = many &#183; bar = one &#183; dashed = written by trigger &#183; 3NF &#183; 2 scaffolding tables omitted</text>
+</svg>

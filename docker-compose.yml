@@ -1,0 +1,45 @@
+# ChainTwin database.
+#
+# Its own container, volume and host port (5434) so it never touches the old
+# InfraTwin database (infratwin-db on 5433) or a local PostgreSQL on 5432.
+#
+# timescaledb-ha is used only because it ships pgvector and is already cached on
+# many machines; the schema uses plain PostgreSQL partitioning and needs no
+# TimescaleDB feature. To use a smaller image, swap in:
+#   image: pgvector/pgvector:pg16
+#   volumes: [pgdata:/var/lib/postgresql/data]
+
+# An explicit project name stops Compose from adopting the old "infratwin" project
+# (same folder name, same service name) and recreating its container.
+name: chaintwin
+
+services:
+  db:
+    image: timescale/timescaledb-ha:pg16
+    container_name: chaintwin-db
+    environment:
+      POSTGRES_PASSWORD: infra
+      POSTGRES_DB: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    shm_size: 1gb
+    command:
+      - postgres
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - work_mem=64MB
+      - -c
+      - maintenance_work_mem=512MB
+      - -c
+      - max_wal_size=4GB
+
+volumes:
+  pgdata:

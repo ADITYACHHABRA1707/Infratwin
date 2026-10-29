@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+benchmark_results.csv
+data/ai4i2020.csv
+data/SYNTHETIC.txt
+.streamlit/
+.pytest_cache/
+*.egg-info/
+.ledger_checkpoint.json

@@ -1,0 +1,11 @@
+# Pinned so a fresh laptop gets the versions this was tested against.
+psycopg[binary]==3.2.3
+pgvector==0.3.6
+numpy==2.1.3
+pandas==2.2.3
+streamlit==1.40.2
+pytest>=8
+
+# Optional: real semantic embeddings. Without it, seed.py and app.py fall back
+# to an offline lexical embedder and the demo still works end to end.
+sentence-transformers==3.3.1
