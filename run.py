@@ -5,7 +5,12 @@ neither `make` nor `psql`: SQL files are applied through psycopg.
     python run.py up          start the database container and wait for it
     python run.py schema      create tables (core, time-series, ledger)
     python run.py seed        simulate the supply chain and write the ledger
+    python run.py security    users/roles tables, views, stored procedure, triggers (re-runnable)
     python run.py optimise    roll-up, HNSW index, un-optimised baseline
+    python run.py users       create the admin / manager / auditor demo accounts
+    python run.py backup      pg_dump the database to backups/
+    python run.py restore     pg_restore the newest dump into a separate database and compare counts
+    python run.py api         start the REST API on :8010 (docs at /docs)
     python run.py anchor      anchor settled sensor windows + hand-offs on the ledger
     python run.py benchmark   baseline vs optimised -> benchmark_results.csv
     python run.py verify      every self-check, including ledger verification
@@ -28,7 +33,9 @@ from pathlib import Path
 import psycopg
 
 ROOT = Path(__file__).resolve().parent
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env)
+
+DB = settings.database_url()
 os.environ["DATABASE_URL"] = DB
 PY = sys.executable
 
@@ -64,7 +71,12 @@ def up() -> int:
 
 
 def schema() -> int:
-    return apply_sql("01_core.sql", "02_timeseries.sql", "04_ledger.sql")
+    return apply_sql("01_core.sql", "02_timeseries.sql", "04_ledger.sql", "05_security.sql")
+
+
+def security() -> int:
+    """Users, roles, views, stored procedure and triggers. Safe to re-run on a seeded database."""
+    return apply_sql("05_security.sql")
 
 
 def optimise() -> int:
@@ -77,7 +89,12 @@ COMMANDS = {
     "clean": lambda: sh("docker", "compose", "down", "-v"),
     "schema": schema,
     "seed": lambda: sh(PY, "seed.py"),
+    "security": security,
     "optimise": optimise,
+    "users": lambda: sh(PY, "scripts/create_users.py"),
+    "backup": lambda: sh(PY, "scripts/backup.py", "backup"),
+    "restore": lambda: sh(PY, "scripts/backup.py", "restore", *sys.argv[2:3]),
+    "api": lambda: sh(PY, "-m", "uvicorn", "api:app", "--port", "8010"),
     "anchor": lambda: sh(PY, "scripts/anchor.py"),
     "benchmark": lambda: sh(PY, "benchmark.py"),
     "verify": lambda: sh(PY, "verify.py"),
@@ -89,7 +106,7 @@ COMMANDS = {
 
 
 def run_all() -> int:
-    for name in ("up", "schema", "seed", "optimise", "benchmark", "verify"):
+    for name in ("up", "schema", "seed", "users", "optimise", "benchmark", "verify"):
         print(f"\n=== {name} ===")
         if COMMANDS[name]():
             print(f"\n'{name}' failed -- stopping")
