@@ -24,15 +24,20 @@ import psycopg
 import streamlit as st
 from pgvector.psycopg import register_vector
 
-import actions
+import auth
 import chain
+import services
 import tamper
+import ui_registry
+from auth import AuthError, Principal
+from db import session_scope
 from embedding import load_embedder
 from queries import (ANOMALY, BACKWARD, EXCURSION_LOG, EXPOSED_LOTS, FORWARD, JOURNEY,
                      LOT_LEDGER, NAIVE, SIMILAR, TREND, exposure_start)
 
 ROOT = Path(__file__).resolve().parent
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env; no secrets in source)
+DB = settings.database_url()
 
 st.set_page_config(page_title="ChainTwin", layout="wide", page_icon="🔗")
 
@@ -62,10 +67,6 @@ def q(sql: str, params=None) -> tuple[pd.DataFrame, float]:
 
 def utc(ts) -> str:
     return pd.Timestamp(ts).strftime("%d %b %H:%M")
-
-
-def lot_rows(df: pd.DataFrame) -> list[tuple[int, str, str]]:
-    return [(int(r.lot_id), r.lot_code, r.status) for r in df.itertuples()]
 
 
 TYPE_NAME = {"RAW": "Raw material", "BATCH": "Production batch", "FINISHED": "Finished lot",
@@ -99,6 +100,85 @@ def show_trace(df: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Sign-in. The JWT lives only in this browser session's state; every rerun verifies it
+# and re-reads the user from the database, so a disabled account or a changed role
+# takes effect on the next click.
+# ---------------------------------------------------------------------------
+def login_screen(notice: str | None = None) -> None:
+    left, mid, right = st.columns([1, 1.2, 1])
+    with mid:
+        st.title("ChainTwin")
+        st.caption("Supply-chain digital twin with a tamper-evident ledger. Sign in to continue.")
+        if notice:
+            st.warning(notice)
+        if st.session_state.get("failed", 0) >= 5:
+            st.error("Too many failed attempts in this session. Reload the page to try again.")
+            return
+        with st.form("login"):
+            email = st.text_input("Email", placeholder="you@company.com")
+            password = st.text_input("Password", type="password")
+            go = st.form_submit_button("Sign in", type="primary", use_container_width=True)
+        if go:
+            if not email.strip() or not password:
+                st.error("Enter both email and password.")
+                return
+            try:
+                with session_scope() as sess:
+                    token = auth.create_token(auth.authenticate(sess, email, password))
+            except AuthError as exc:
+                st.session_state["failed"] = st.session_state.get("failed", 0) + 1
+                st.error(str(exc))
+                return
+            except Exception:  # noqa: BLE001
+                st.error("Cannot reach the database. Start it with `python run.py up`.")
+                return
+            st.session_state["token"] = token
+            st.session_state["failed"] = 0
+            st.rerun()
+
+
+def current_principal() -> tuple[Principal | None, str | None]:
+    token = st.session_state.get("token")
+    if not token:
+        return None, None
+    try:
+        with session_scope() as sess:
+            return auth.principal_from_token(sess, token), None
+    except AuthError as exc:
+        st.session_state.pop("token", None)
+        return None, str(exc)
+
+
+principal, why = current_principal()
+if principal is None:
+    login_screen(why)
+    st.stop()
+
+with st.sidebar:
+    st.markdown(f"**{principal.full_name}**  \n{principal.email}")
+    st.markdown(f"Role: `{principal.role}`")
+    with st.expander("Session (authenticated user info)"):
+        claims = auth.decode_token(st.session_state["token"])
+        st.json({"sub": claims["sub"], "email": claims["email"], "role": claims["role"],
+                 "expires": pd.Timestamp(claims["exp"], unit="s", tz="UTC").strftime("%d %b %H:%M UTC"),
+                 "permissions": sorted(auth.PERMISSIONS[principal.role])})
+    if st.button("Sign out", use_container_width=True):
+        st.session_state.pop("token", None)
+        st.rerun()
+
+
+def change_status(df: pd.DataFrame, new_status: str, reason: str) -> int:
+    """Hold / release through the ORM service: the update and the signed ledger block commit together."""
+    with session_scope() as sess:
+        n = services.set_lot_status(sess, principal, [int(x) for x in df["lot_id"]], new_status, reason)
+    if n:
+        services.save_ledger_checkpoint()
+    return n
+
+
+can_change = principal.can("status:change")
+
+# ---------------------------------------------------------------------------
 st.title("ChainTwin")
 st.caption(
     "A lot-level digital twin of a dairy supply chain: sensors, genealogy and custody "
@@ -127,8 +207,10 @@ k3.metric("Sensor readings", f"{m['readings']:,}")
 k4.metric("Ledger blocks", f"{m['blocks']:,}", f"{m['txs']:,} transactions", delta_color="off")
 k5.metric("Ledger", "✅ intact" if chain_state["ok"] else "❌ BROKEN")
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
-    ["Control tower", "Recall simulator", "Provenance", "Ledger", "Benchmark", "The gap"])
+pages = auth.visible_pages(principal)           # role-based menu: a role only gets its own pages
+tabs = dict(zip(pages, st.tabs(pages)))
+tab1, tab2, tab3, tab4 = (tabs["Control tower"], tabs["Recall simulator"], tabs["Provenance"], tabs["Ledger"])
+tab5, tab6 = tabs["Benchmark"], tabs["The gap"]
 
 # ===========================================================================
 def control_tower() -> None:
@@ -218,18 +300,19 @@ def control_tower() -> None:
         todo = pd.concat([exposed[["lot_id", "lot_code", "status"]],
                           trace[["lot_id", "lot_code", "status"]]]).drop_duplicates("lot_id")
         todo = todo[todo["status"] == "OK"]
-        if act1.button(f"Place {len(todo)} lots on HOLD", disabled=todo.empty, type="primary",
+        if act1.button(f"Place {len(todo)} lots on HOLD", disabled=todo.empty or not can_change, type="primary",
                        help="Updates the lots and writes a signed block to the ledger in one transaction"):
-            n = actions.set_status(get_conn(), lot_rows(todo), "HOLD",
-                                   f"Excursion on {ep['name']} from {utc(since)}")
+            n = change_status(todo, "HOLD", f"Excursion on {ep['name']} from {utc(since)}")
             st.success(f"{n} lots held and recorded on the ledger.")
             st.rerun()
         held = pd.concat([exposed[["lot_id", "lot_code", "status"]],
                           trace[["lot_id", "lot_code", "status"]]]).drop_duplicates("lot_id")
         held = held[held["status"] == "HOLD"]
-        if act2.button(f"Release {len(held)} held lots", disabled=held.empty):
-            actions.set_status(get_conn(), lot_rows(held), "OK", f"Cleared after review of {ep['name']}")
+        if act2.button(f"Release {len(held)} held lots", disabled=held.empty or not can_change):
+            change_status(held, "OK", f"Cleared after review of {ep['name']}")
             st.rerun()
+        if not can_change:
+            st.caption("Your role is read-only: holds and releases need MANAGER or ADMIN.")
 
 
 with tab1:
@@ -283,9 +366,8 @@ with tab2:
 
         todo = trace[(trace["status"] == "OK") & trace["in_chain"]]
         if st.button(f"Hold {len(todo)} lots still in the chain and record on ledger", type="primary",
-                     disabled=todo.empty, key="hold_recall"):
-            n = actions.set_status(get_conn(), lot_rows(todo), "HOLD",
-                                   f"Downstream of {bad['lot_code']} ({bad['test_name']})")
+                     disabled=todo.empty or not can_change, key="hold_recall"):
+            n = change_status(todo, "HOLD", f"Downstream of {bad['lot_code']} ({bad['test_name']})")
             st.success(f"{n} lots held and recorded on the ledger.")
             st.rerun()
 
@@ -371,11 +453,13 @@ with tab4:
             st.dataframe(pd.DataFrame(res["problems"]), hide_index=True, use_container_width=True)
 
     st.markdown("#### Try to break it")
+    if not principal.can("tamper:run"):
+        st.info("Running attacks is limited to the ADMIN role.")
     st.caption("Each scenario plays an attacker with full SQL access — they can even disable the append-only "
                "trigger. The change is made inside a transaction that is rolled back afterwards, so nothing is "
                "left altered.")
     key = st.selectbox("Attack", list(tamper.SCENARIOS), format_func=lambda k: tamper.SCENARIOS[k][0])
-    if st.button("Run the attack and verify"):
+    if st.button("Run the attack and verify", disabled=not principal.can("tamper:run")):
         with st.spinner("Tampering, then verifying…"):
             r = tamper.run(get_conn(), key)
         st.write(f"**Attacker:** {r['what']}.")
@@ -385,6 +469,15 @@ with tab4:
         else:
             st.warning("Not detected.")
         st.caption("Database restored (transaction rolled back).")
+
+# ===========================================================================
+if "Registry" in tabs:
+    with tabs["Registry"]:
+        ui_registry.registry_page(principal)
+
+if "Users" in tabs:
+    with tabs["Users"]:
+        ui_registry.users_page(principal)
 
 # ===========================================================================
 with tab5:
