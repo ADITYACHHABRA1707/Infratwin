@@ -26,7 +26,8 @@ import seed  # noqa: E402
 import tamper  # noqa: E402
 from embedding import VocabEmbedder, build_fallback_corpus, compose_report  # noqa: E402
 
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env; no secrets in source)
+DB = settings.database_url()
 
 
 # ===========================================================================

@@ -42,7 +42,8 @@ from embedding import EMBED_DIM, compose_report, load_embedder
 from queries import FORWARD
 
 ROOT = Path(__file__).resolve().parent
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env; no secrets in source)
+DB = settings.database_url()
 DAYS = int(os.getenv("DAYS", "30"))
 BENCH_VECTORS = int(os.getenv("BENCH_VECTORS", "20000"))
 SEED = 7

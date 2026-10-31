@@ -19,7 +19,8 @@ import tamper
 from embedding import load_embedder
 from queries import ANOMALY, EXPOSED_LOTS, FORWARD, NAIVE, SIMILAR, exposure_start
 
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env; no secrets in source)
+DB = settings.database_url()
 PASS, FAIL, WARN = "PASS", "FAIL", "WARN"
 results: list[tuple[str, str, str]] = []
 

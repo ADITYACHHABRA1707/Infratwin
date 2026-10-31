@@ -18,7 +18,8 @@ import psycopg
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import chain  # noqa: E402
 
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env; no secrets in source)
+DB = settings.database_url()
 
 
 def main() -> int:

@@ -32,7 +32,8 @@ import psycopg
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env; no secrets in source)
+DB = settings.database_url()
 WINDOW = timedelta(minutes=90)
 RAMP_SECONDS = 1800.0
 

@@ -29,7 +29,8 @@ from pgvector.psycopg import register_vector
 import chain
 from queries import FORWARD
 
-DB = os.getenv("DATABASE_URL", "postgresql://postgres:infra@localhost:5434/postgres")
+import settings  # noqa: E402  (loads .env; no secrets in source)
+DB = settings.database_url()
 RUNS = int(os.getenv("RUNS", "7"))
 WARMUP = int(os.getenv("WARMUP", "2"))
 
