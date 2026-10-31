@@ -1,0 +1,300 @@
+-- =============================================================================
+-- ChainTwin | demo_queries.sql
+-- Joins, aggregates, views, transactions, the stored procedure, triggers,
+-- constraints and index plans, each runnable on its own. The application itself
+-- reaches the database through the ORM; this file exists to show the SQL features.
+--
+--   docker exec -i chaintwin-db psql -U postgres -a -f - < sql/demo_queries.sql
+-- Everything that changes data runs inside a transaction that is rolled back.
+-- =============================================================================
+\pset pager off
+Pager usage is off.
+\set VERBOSITY terse
+\echo '=== 1. JOIN: lot -> product -> holder (3 tables) ==='
+=== 1. JOIN: lot -> product -> holder (3 tables) ===
+SELECT l.lot_code, pr.name AS product, pa.name AS holder, l.quantity, l.status
+FROM lots l
+JOIN products pr ON pr.product_id = l.product_id
+JOIN parties  pa ON pa.party_id   = l.party_id
+WHERE l.lot_type = 'STOCK'
+ORDER BY l.created_at DESC LIMIT 5;
+   lot_code   |       product       |        holder         | quantity | status 
+--------------+---------------------+-----------------------+----------+--------
+ RS-261030-17 | Fruit yoghurt 400 g | SuperSave Jayanagar   |  3704.05 | OK
+ RS-261030-18 | Fruit yoghurt 400 g | SuperSave Jayanagar   |  4508.89 | OK
+ RS-261030-07 | Fruit yoghurt 400 g | DailyNeeds Velachery  |  4437.06 | OK
+ RS-261030-08 | Toned milk 1 L      | DailyNeeds Velachery  |  2683.96 | OK
+ RS-261030-15 | Plain yoghurt 400 g | DailyNeeds Whitefield |  7793.57 | OK
+(5 rows)
+
+\echo '=== 2. JOIN: a shipment with origin, destination, carrier and vehicle (view over 5 tables) ==='
+=== 2. JOIN: a shipment with origin, destination, carrier and vehicle (view over 5 tables) ===
+SELECT shipment_code, origin, destination, carrier, vehicle, hours, lots_carried
+FROM v_shipment_overview ORDER BY depart_time DESC LIMIT 5;
+ shipment_code |           origin           |        destination         |       carrier       | vehicle  | hours | lots_carried 
+---------------+----------------------------+----------------------------+---------------------+----------+-------+--------------
+ SH-261031-002 | Aarav Dairy Works          | Bengaluru Distribution Hub | FrostLine Transport | FL-RF-02 |   6.0 |            5
+ SH-261031-001 | Aarav Dairy Works          | Chennai Distribution Hub   | FrostLine Transport | FL-RF-01 |   4.5 |            6
+ SH-261030-014 | Bengaluru Distribution Hub | SuperSave Jayanagar        | SwiftChill Carriers | SC-RF-08 |   3.0 |            2
+ SH-261030-010 | Chennai Distribution Hub   | DailyNeeds Velachery       | SwiftChill Carriers | SC-RF-04 |   2.5 |            2
+ SH-261030-009 | Chennai Distribution Hub   | GreenBasket Adyar          | SwiftChill Carriers | SC-RF-03 |   2.5 |            2
+(5 rows)
+
+\echo '=== 3. AGGREGATE: lots and quantity per organisation type (GROUP BY + HAVING) ==='
+=== 3. AGGREGATE: lots and quantity per organisation type (GROUP BY + HAVING) ===
+SELECT pa.party_type, count(*) AS lots, round(sum(l.quantity)) AS total_qty,
+       count(*) FILTER (WHERE l.status <> 'OK') AS not_ok
+FROM lots l JOIN parties pa ON pa.party_id = l.party_id
+GROUP BY pa.party_type HAVING count(*) > 10
+ORDER BY lots DESC;
+  party_type  | lots | total_qty | not_ok 
+--------------+------+-----------+--------
+ Retailer     |  568 |   2251800 |     32
+ Manufacturer |  415 |   3555100 |     22
+ Distributor  |  284 |   2251800 |     16
+ Supplier     |  124 |   1249000 |      2
+(4 rows)
+
+\echo '=== 4. AGGREGATE: out-of-spec minutes per unit, worst five (time series, partition pruned) ==='
+=== 4. AGGREGATE: out-of-spec minutes per unit, worst five (time series, partition pruned) ===
+SELECT u.name, count(*) AS minutes_out, round(max(r.temp_c)::numeric, 1) AS peak_c, u.temp_max
+FROM sensor_readings r JOIN units u USING (unit_id)
+WHERE r.time > now() - interval '72 hours' AND (r.temp_c > u.temp_max OR r.temp_c < u.temp_min)
+GROUP BY u.unit_id ORDER BY minutes_out DESC LIMIT 5;
+                name                | minutes_out | peak_c | temp_max 
+------------------------------------+-------------+--------+----------
+ Chennai Distribution Hub Cold Room |         288 |    9.8 |        6
+ Pasteuriser Line B                 |          83 |   71.7 |       76
+ FreshMart T Nagar Display          |          80 |   11.0 |        6
+ Plant RM Cold Store                |          79 |    8.2 |        5
+(4 rows)
+
+\echo '=== 5. VIEWS ==='
+=== 5. VIEWS ===
+SELECT * FROM v_lot_status_summary ORDER BY lot_type, status;
+ lot_type |  status  | lots | total_quantity 
+----------+----------+------+----------------
+ BATCH    | OK       |  114 |     1165000.00
+ BATCH    | RECALLED |    6 |       63000.00
+ FINISHED | OK       |  279 |     2206500.01
+ FINISHED | RECALLED |   16 |      120600.01
+ RAW      | OK       |  122 |     1223000.00
+ RAW      | RECALLED |    2 |       26000.00
+ STOCK    | OK       |  804 |     4262399.94
+ STOCK    | RECALLED |   48 |      241200.03
+(8 rows)
+
+SELECT party, party_type, lots, on_hold, recalled FROM v_party_inventory ORDER BY lots DESC LIMIT 5;
+           party            |  party_type  | lots | on_hold | recalled 
+----------------------------+--------------+------+---------+----------
+ Aarav Dairy Works          | Manufacturer |  415 |       0 |       22
+ Chennai Distribution Hub   | Distributor  |  142 |       0 |        8
+ Bengaluru Distribution Hub | Distributor  |  142 |       0 |        8
+ GreenBasket Koramangala    | Retailer     |   85 |       0 |        5
+ FreshMart Anna Nagar       | Retailer     |   84 |       0 |        4
+(5 rows)
+
+SELECT from_lot, to_lot, flow_type, round(share::numeric, 3) AS share FROM lot_flow_share WHERE flow_type = 'consumed_in' LIMIT 5;
+ from_lot | to_lot |  flow_type  | share 
+----------+--------+-------------+-------
+        1 |      5 | consumed_in | 0.600
+        2 |      5 | consumed_in | 0.400
+        1 |      9 | consumed_in | 0.600
+        2 |      9 | consumed_in | 0.400
+        1 |     12 | consumed_in | 0.087
+(5 rows)
+
+\echo '=== 6. RECURSIVE CTE: everything downstream of the failed raw-milk lot, with exposure share ==='
+=== 6. RECURSIVE CTE: everything downstream of the failed raw-milk lot, with exposure share ===
+WITH RECURSIVE hit AS (
+  SELECT lot_id, 0 AS depth, 1.0::float8 AS share, ARRAY[lot_id] AS path
+  FROM lots WHERE lot_code = 'RM-261026-02'
+  UNION ALL
+  SELECT f.to_lot, h.depth + 1, h.share * f.share, h.path || f.to_lot
+  FROM hit h JOIN lot_flow_share f ON f.from_lot = h.lot_id
+  WHERE h.depth < 8 AND NOT f.to_lot = ANY(h.path))
+SELECT l.lot_type, count(DISTINCT l.lot_id) AS lots, max(h.depth) AS max_depth
+FROM hit h JOIN lots l USING (lot_id) GROUP BY l.lot_type ORDER BY max(h.depth);
+ lot_type | lots | max_depth 
+----------+------+-----------
+ RAW      |    1 |         0
+ BATCH    |    3 |         1
+ FINISHED |    6 |         2
+ STOCK    |   18 |         4
+(4 rows)
+
+\echo '=== 7. TRANSACTION: hold a lot, observe the audit trigger, roll back ==='
+=== 7. TRANSACTION: hold a lot, observe the audit trigger, roll back ===
+BEGIN;
+BEGIN
+UPDATE lots SET status = 'HOLD' WHERE lot_code = 'FG-261030-11';
+UPDATE 1
+SELECT entity, action, details FROM audit_logs ORDER BY log_id DESC LIMIT 1;
+ entity | action |         details          
+--------+--------+--------------------------
+ lots   | UPDATE | FG-261030-11: OK -> HOLD
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+SELECT lot_code, status AS status_after_rollback FROM lots WHERE lot_code = 'FG-261030-11';
+   lot_code   | status_after_rollback 
+--------------+-----------------------
+ FG-261030-11 | OK
+(1 row)
+
+\echo '=== 8. STORED PROCEDURE: sp_change_user_role (rolled back) ==='
+=== 8. STORED PROCEDURE: sp_change_user_role (rolled back) ===
+BEGIN;
+BEGIN
+CALL sp_change_user_role(1, 3, 'MANAGER');        -- actor 1 is ADMIN: allowed
+CALL
+SELECT u.email, r.role_name FROM users u JOIN roles r USING (role_id) ORDER BY user_id;
+          email          | role_name 
+-------------------------+-----------
+ admin@chaintwin.local   | ADMIN
+ manager@chaintwin.local | MANAGER
+ auditor@chaintwin.local | MANAGER
+(3 rows)
+
+SELECT entity, action, details FROM audit_logs WHERE entity = 'users' ORDER BY log_id DESC LIMIT 1;
+ entity | action |                        details                        
+--------+--------+-------------------------------------------------------
+ users  | UPDATE | auditor@chaintwin.local: role 3->2, active true->true
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+\echo '--- the same call made by a MANAGER (user 2) is refused inside the database:'
+--- the same call made by a MANAGER (user 2) is refused inside the database:
+CALL sp_change_user_role(2, 3, 'ADMIN');
+psql:<stdin>:68: ERROR:  only an active ADMIN may change roles
+\echo '--- unknown role:'
+--- unknown role:
+CALL sp_change_user_role(1, 3, 'ROOT');
+psql:<stdin>:70: ERROR:  unknown role ROOT
+\echo '=== 9. TRIGGERS ==='
+=== 9. TRIGGERS ===
+\echo '--- last active ADMIN cannot be disabled:'
+--- last active ADMIN cannot be disabled:
+UPDATE users SET is_active = FALSE WHERE user_id = 1;
+psql:<stdin>:74: ERROR:  cannot remove the last active ADMIN (admin@chaintwin.local)
+\echo '--- last active ADMIN cannot be deleted:'
+--- last active ADMIN cannot be deleted:
+DELETE FROM users WHERE user_id = 1;
+psql:<stdin>:76: ERROR:  cannot remove the last active ADMIN (admin@chaintwin.local)
+\echo '--- the ledger is append-only:'
+--- the ledger is append-only:
+UPDATE blocks SET nonce = 0 WHERE height = 0;
+psql:<stdin>:78: ERROR:  ledger is append-only: UPDATE on blocks rejected
+DELETE FROM ledger_tx WHERE tx_id = 1;
+psql:<stdin>:79: ERROR:  ledger is append-only: DELETE on ledger_tx rejected
+\echo '=== 10. CONSTRAINTS rejecting bad data ==='
+=== 10. CONSTRAINTS rejecting bad data ===
+INSERT INTO lots(lot_code, product_id, party_id, lot_type, quantity, created_at) VALUES ('X-1', 1, 1, 'RAW', -5, now());
+psql:<stdin>:82: ERROR:  new row for relation "lots" violates check constraint "lots_quantity_check"
+INSERT INTO lots(lot_code, product_id, party_id, lot_type, quantity, created_at) VALUES ('X-2', 1, 1, 'MAGIC', 5, now());
+psql:<stdin>:83: ERROR:  new row for relation "lots" violates check constraint "lots_lot_type_check"
+INSERT INTO lots(lot_code, product_id, party_id, lot_type, quantity, created_at) VALUES ('X-3', 999999, 1, 'RAW', 5, now());
+psql:<stdin>:84: ERROR:  insert or update on table "lots" violates foreign key constraint "lots_product_id_fkey"
+INSERT INTO lots(lot_code, product_id, party_id, lot_type, quantity, created_at) VALUES ('RM-261026-02', 1, 1, 'RAW', 5, now());
+psql:<stdin>:85: ERROR:  duplicate key value violates unique constraint "lots_lot_code_key"
+INSERT INTO lots(lot_code, product_id, party_id, lot_type, quantity) VALUES ('X-5', 1, 1, 'RAW', 5);
+psql:<stdin>:86: ERROR:  null value in column "created_at" of relation "lots" violates not-null constraint
+INSERT INTO users(email, full_name, password_hash, role_id) VALUES ('not-an-email', 'x', 'h', 1);
+psql:<stdin>:87: ERROR:  new row for relation "users" violates check constraint "users_email_format"
+INSERT INTO shipments(shipment_code, origin_party, dest_party, carrier_party, unit_id, depart_time, arrive_time)
+VALUES ('S-X', 1, 2, 3, 1, now(), now() - interval '1 hour');
+psql:<stdin>:89: ERROR:  new row for relation "shipments" violates check constraint "arrives_after_departure"
+\echo '=== 11. INDEXES: plans (EXPLAIN ANALYZE) ==='
+=== 11. INDEXES: plans (EXPLAIN ANALYZE) ===
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY ON)
+SELECT avg(temp_c) FROM sensor_readings
+WHERE unit_id = 1 AND time > now() - interval '24 hours';
+                                                                    QUERY PLAN                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate (actual rows=1 loops=1)
+   ->  Append (actual rows=1423 loops=1)
+         Subplans Removed: 44
+         ->  Index Scan using sensor_readings_p20261030_unit_id_time_idx on sensor_readings_p20261030 sensor_readings_1 (actual rows=1229 loops=1)
+               Index Cond: ((unit_id = 1) AND ("time" > (now() - '24:00:00'::interval)))
+         ->  Index Scan using sensor_readings_p20261031_unit_id_time_idx on sensor_readings_p20261031 sensor_readings_2 (actual rows=194 loops=1)
+               Index Cond: ((unit_id = 1) AND ("time" > (now() - '24:00:00'::interval)))
+         ->  Seq Scan on sensor_readings_p20261101 sensor_readings_3 (actual rows=0 loops=1)
+               Filter: ((unit_id = 1) AND ("time" > (now() - '24:00:00'::interval)))
+         ->  Seq Scan on sensor_readings_default sensor_readings_4 (actual rows=0 loops=1)
+               Filter: ((unit_id = 1) AND ("time" > (now() - '24:00:00'::interval)))
+ Planning Time: 3.776 ms
+ Execution Time: 1.141 ms
+(13 rows)
+
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY ON)
+SELECT lot_id FROM custody WHERE unit_id = 1 AND from_time < now() AND (to_time IS NULL OR to_time > now() - interval '1 hour');
+                                                                                QUERY PLAN                                                                                 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on custody (actual rows=7 loops=1)
+   Recheck Cond: (((unit_id = 1) AND (from_time < now()) AND (to_time IS NULL)) OR ((unit_id = 1) AND (from_time < now()) AND (to_time > (now() - '01:00:00'::interval))))
+   Filter: ((from_time < now()) AND ((to_time IS NULL) OR (to_time > (now() - '01:00:00'::interval))))
+   Heap Blocks: exact=4
+   ->  BitmapOr (actual rows=0 loops=1)
+         ->  Bitmap Index Scan on idx_custody_unit_time (actual rows=7 loops=1)
+               Index Cond: ((unit_id = 1) AND (from_time < now()) AND (to_time IS NULL))
+         ->  Bitmap Index Scan on idx_custody_unit_time (actual rows=0 loops=1)
+               Index Cond: ((unit_id = 1) AND (from_time < now()) AND (to_time > (now() - '01:00:00'::interval)))
+ Planning Time: 0.479 ms
+ Execution Time: 0.070 ms
+(11 rows)
+
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY ON)
+SELECT lot_code FROM lots WHERE lot_type = 'STOCK' ORDER BY created_at DESC LIMIT 20;
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Limit (actual rows=20 loops=1)
+   ->  Index Scan using idx_lots_type_created on lots (actual rows=20 loops=1)
+         Index Cond: (lot_type = 'STOCK'::text)
+ Planning Time: 0.153 ms
+ Execution Time: 0.049 ms
+(5 rows)
+
+\echo '=== 12. Index inventory ==='
+=== 12. Index inventory ===
+SELECT tablename, indexname FROM pg_indexes
+WHERE schemaname = 'public' AND tablename !~ '^sensor_readings_p' AND indexname NOT LIKE '%pkey'
+ORDER BY tablename, indexname;
+        tablename        |                       indexname                       
+-------------------------+-------------------------------------------------------
+ audit_logs              | idx_audit_entity_time
+ blocks                  | blocks_block_hash_key
+ custody                 | idx_custody_lot
+ custody                 | idx_custody_unit_time
+ incident_reports        | idx_reports_hnsw
+ incident_reports        | incident_reports_incident_id_key
+ incidents               | idx_incidents_kind
+ ledger_tx               | idx_tx_subject
+ ledger_tx               | idx_tx_type
+ ledger_tx               | ledger_tx_height_tx_index_key
+ ledger_tx               | ledger_tx_tx_hash_key
+ lot_flows               | idx_flows_to
+ lots                    | idx_lots_party
+ lots                    | idx_lots_type_created
+ lots                    | lots_lot_code_key
+ parties                 | parties_name_key
+ products                | products_sku_key
+ quality_events          | idx_quality_lot
+ readings_hourly         | idx_hourly_bucket_unit
+ readings_hourly         | idx_hourly_unit
+ report_bench            | idx_bench_hnsw
+ roles                   | roles_role_name_key
+ sensor_readings         | idx_readings_unit_time
+ sensor_readings_default | sensor_readings_default_unit_id_time_idx
+ shipments               | idx_shipments_unit_time
+ shipments               | shipments_shipment_code_key
+ telemetry_windows       | idx_windows_unit
+ telemetry_windows       | telemetry_windows_unit_id_window_start_window_end_key
+ units                   | idx_units_party
+ units                   | units_name_key
+ users                   | idx_users_party
+ users                   | idx_users_role
+ users                   | users_email_key
+(33 rows)
+

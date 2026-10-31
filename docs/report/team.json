@@ -1,0 +1,17 @@
+{
+  "team_name": "Panther",
+  "project_title": "InfraTwin: a lot-level supply-chain digital twin with a tamper-evident ledger (code name ChainTwin)",
+  "course": "Database Systems (BCSE307L), Fall Semester 2026-2027",
+  "faculty": "Dr. Deepika J",
+  "class_numbers": "VL2026270104071 and VL2026270104074",
+  "assessments": "Assessments 8, 9 and 10",
+  "github_repo_url": "https://github.com/ADITYACHHABRA1707/Infratwin",
+  "live_url": "https://infratwin.streamlit.app/ (Streamlit Community Cloud)",
+  "docker_hub_url": "NOT PUSHED YET - add the Docker Hub URL here after docker push",
+  "members": [
+    {"name": "Aditya Chhabra", "reg_no": "24BKT0147", "github": "ADITYACHHABRA1707",
+     "role": "Database design (ER, schema, normalisation, indexes), SQL objects (views, stored procedure, triggers), data simulation, blockchain ledger, ORM layer, authentication and RBAC, REST API, backup/restore, Docker, CI, testing, report"},
+    {"name": "Tanmay Goel", "reg_no": "24BCE0773", "github": "ENTER TANMAY'S GITHUB USERNAME",
+     "role": "Project architect (overall architecture and scope) and frontend execution (dashboard pages and user-interface flow)"}
+  ]
+}

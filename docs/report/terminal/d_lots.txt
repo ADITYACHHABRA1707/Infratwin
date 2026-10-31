@@ -1,0 +1,33 @@
+                                         Table "public.lots"
+   Column   |           Type           | Collation | Nullable |               Default                
+------------+--------------------------+-----------+----------+--------------------------------------
+ lot_id     | integer                  |           | not null | nextval('lots_lot_id_seq'::regclass)
+ lot_code   | text                     |           | not null | 
+ product_id | integer                  |           | not null | 
+ party_id   | integer                  |           | not null | 
+ lot_type   | text                     |           | not null | 
+ quantity   | numeric(12,2)            |           | not null | 
+ created_at | timestamp with time zone |           | not null | 
+ expires_at | timestamp with time zone |           |          | 
+ status     | text                     |           | not null | 'OK'::text
+Indexes:
+    "lots_pkey" PRIMARY KEY, btree (lot_id)
+    "idx_lots_party" btree (party_id)
+    "idx_lots_type_created" btree (lot_type, created_at DESC)
+    "lots_lot_code_key" UNIQUE CONSTRAINT, btree (lot_code)
+Check constraints:
+    "lots_lot_type_check" CHECK (lot_type = ANY (ARRAY['RAW'::text, 'BATCH'::text, 'FINISHED'::text, 'STOCK'::text]))
+    "lots_quantity_check" CHECK (quantity > 0::numeric)
+    "lots_status_check" CHECK (status = ANY (ARRAY['OK'::text, 'HOLD'::text, 'RECALLED'::text]))
+Foreign-key constraints:
+    "lots_party_id_fkey" FOREIGN KEY (party_id) REFERENCES parties(party_id)
+    "lots_product_id_fkey" FOREIGN KEY (product_id) REFERENCES products(product_id)
+Referenced by:
+    TABLE "custody" CONSTRAINT "custody_lot_id_fkey" FOREIGN KEY (lot_id) REFERENCES lots(lot_id) ON DELETE CASCADE
+    TABLE "incidents" CONSTRAINT "incidents_lot_id_fkey" FOREIGN KEY (lot_id) REFERENCES lots(lot_id) ON DELETE CASCADE
+    TABLE "lot_flows" CONSTRAINT "lot_flows_from_lot_fkey" FOREIGN KEY (from_lot) REFERENCES lots(lot_id) ON DELETE CASCADE
+    TABLE "lot_flows" CONSTRAINT "lot_flows_to_lot_fkey" FOREIGN KEY (to_lot) REFERENCES lots(lot_id) ON DELETE CASCADE
+    TABLE "quality_events" CONSTRAINT "quality_events_lot_id_fkey" FOREIGN KEY (lot_id) REFERENCES lots(lot_id) ON DELETE CASCADE
+Triggers:
+    trg_lot_audit AFTER INSERT OR DELETE OR UPDATE ON lots FOR EACH ROW EXECUTE FUNCTION log_lot_status_change()
+

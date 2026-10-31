@@ -1,0 +1,13 @@
+         view         
+----------------------
+ lot_flow_share
+ v_party_inventory
+ v_lot_status_summary
+ v_shipment_overview
+(4 rows)
+
+   matviewname   
+-----------------
+ readings_hourly
+(1 row)
+

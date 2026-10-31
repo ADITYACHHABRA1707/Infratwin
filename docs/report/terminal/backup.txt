@@ -1,0 +1,3 @@
+$ docker exec chaintwin-db pg_dump -U postgres -Fc postgres  >  chaintwin_20261031_090050.dump
+  wrote chaintwin_20261031_090050.dump  (46.9 MB, custom format, compressed)
+$ C:\Users\adity\OneDrive\Desktop\infratwin\.venv\Scripts\python.exe scripts/backup.py backup

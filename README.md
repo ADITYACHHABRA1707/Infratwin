@@ -50,6 +50,33 @@ current clock (see [Presenting](#presenting)).
 | `demo` | re-arm the live anomalies |
 | `benchmark` | baseline vs optimised → `benchmark_results.csv` |
 
+## Accounts, roles and the REST API
+
+Sign-in uses email + password (bcrypt) and a signed JWT. All people live in one `users` table;
+`role_id` decides what they may do.
+
+| Role | May do |
+|---|---|
+| ADMIN | everything, including the Users page, role changes and the tamper demo |
+| MANAGER | manage products/parties, register raw lots, place holds and releases |
+| AUDITOR | read-only: dashboards, provenance, ledger verification |
+
+```bash
+cp .env.example .env        # then set real values: POSTGRES_PASSWORD, DATABASE_URL, JWT_SECRET, SEED_PASSWORD
+python run.py all           # ... includes `users`, which creates admin@ / manager@ / auditor@chaintwin.local
+python run.py app           # dashboard on :8501
+python run.py api           # REST API on :8010, interactive docs at /docs
+python run.py backup        # pg_dump -> backups/
+python run.py restore       # pg_restore into a separate database and compare row counts
+```
+
+`.env` is git-ignored; no secret is written in source. Database access in the app goes through
+SQLAlchemy (`models.py`, `services.py`); raw SQL is limited to recursive CTEs, vector search, the
+ledger and the stored procedure. Docker: `docker build -t chaintwin .`, or
+`docker compose --profile app up -d`.
+
+The submission report is built with `python docs/report/build_report.py` (see `docs/report/`).
+
 ---
 
 ## What the dashboard shows

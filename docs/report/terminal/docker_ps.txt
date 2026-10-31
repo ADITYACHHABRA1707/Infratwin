@@ -1,0 +1,5 @@
+NAMES           IMAGE                           STATUS                             PORTS
+chaintwin-app   chaintwin:latest                Up 34 seconds (health: starting)   0.0.0.0:8502->8501/tcp, [::]:8502->8501/tcp
+chaintwin-db    timescale/timescaledb-ha:pg16   Up 57 minutes (healthy)            0.0.0.0:5434->5432/tcp, [::]:5434->5432/tcp
+REPOSITORY   TAG       SIZE
+chaintwin    latest    876MB

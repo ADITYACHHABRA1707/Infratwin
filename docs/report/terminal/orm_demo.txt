@@ -1,0 +1,64 @@
+
+--- CREATE  services.create_product(...)  [ORM INSERT]
+    SQL> SAVEPOINT sa_savepoint_1
+    SQL> INSERT INTO products (sku, name, category, temp_min, temp_max, shelf_life_days) VALUES (%(sku)s::VARCHAR, %(name)s::VARCHAR, %(category)s::VARCHAR, %(temp_min)s, %(temp_max)s, %(shelf_life_days)s::INTEGER) RETURNING products.produ…
+    params> {'sku': 'ORM-DEMO', 'name': 'ORM demo yoghurt', 'category': 'FINISHED', 'temp_min': 2, 'temp_max': 6, 'shelf_life_days': 21}
+    SQL> RELEASE SAVEPOINT sa_savepoint_1
+  -> product_id=17 sku=ORM-DEMO
+
+--- READ    services.list_products(search='orm', category='FINISHED', page=1, page_size=5)  [SELECT + LIMIT/OFFSET]
+    SQL> SELECT count(*) AS count_1 FROM (SELECT products.product_id AS product_id, products.sku AS sku, products.name AS name, products.category AS category, products.temp_min AS temp_min, products.temp_max AS temp_max, products.shelf_lif…
+    params> {'sku_1': '%orm%', 'name_1': '%orm%', 'category_1': 'FINISHED'}
+    SQL> SELECT products.product_id, products.sku, products.name, products.category, products.temp_min, products.temp_max, products.shelf_life_days FROM products WHERE (products.sku ILIKE %(sku_1)s::VARCHAR OR products.name ILIKE %(name_1)…
+    params> {'sku_1': '%orm%', 'name_1': '%orm%', 'category_1': 'FINISHED', 'param_1': 5, 'param_2': 0}
+  -> 1 match, page 1/1: ['ORM-DEMO']
+
+--- UPDATE  services.update_product(...)
+    SQL> UPDATE products SET name=%(name)s::VARCHAR, temp_min=%(temp_min)s, temp_max=%(temp_max)s, shelf_life_days=%(shelf_life_days)s::INTEGER WHERE products.product_id = %(products_product_id)s::INTEGER
+    params> {'name': 'ORM demo yoghurt 500 g', 'temp_min': 1, 'temp_max': 5, 'shelf_life_days': 25, 'products_product_id': 17}
+  -> name='ORM demo yoghurt 500 g' shelf_life_days=25
+
+--- DELETE  services.delete_product(...)
+    SQL> SELECT count(*) AS count_1 FROM lots WHERE lots.product_id = %(product_id_1)s::INTEGER
+    params> {'product_id_1': 17}
+    SQL> SAVEPOINT sa_savepoint_2
+    SQL> SELECT lots.lot_id AS lots_lot_id, lots.lot_code AS lots_lot_code, lots.product_id AS lots_product_id, lots.party_id AS lots_party_id, lots.lot_type AS lots_lot_type, lots.quantity AS lots_quantity, lots.created_at AS lots_created…
+    params> {'param_1': 17}
+    SQL> DELETE FROM products WHERE products.product_id = %(product_id)s::INTEGER
+    params> {'product_id': 17}
+    SQL> RELEASE SAVEPOINT sa_savepoint_2
+    SQL> SELECT products.product_id AS products_product_id, products.sku AS products_sku, products.name AS products_name, products.category AS products_category, products.temp_min AS products_temp_min, products.temp_max AS products_temp_ma…
+    params> {'pk_1': 17}
+  -> exists afterwards: False
+
+--- JOIN    services.list_lots(search='yoghurt', lot_type='STOCK', page_size=3)  [lots JOIN products JOIN parties]
+    SQL> SELECT count(*) AS count_1 FROM (SELECT lots.lot_id AS lot_id, lots.lot_code AS lot_code, lots.product_id AS product_id, lots.party_id AS party_id, lots.lot_type AS lot_type, lots.quantity AS quantity, lots.created_at AS created_a…
+    params> {'lot_code_1': '%yoghurt%', 'name_1': '%yoghurt%', 'name_2': '%yoghurt%', 'lot_type_1': 'STOCK'}
+    SQL> SELECT lots.lot_id, lots.lot_code, lots.product_id, lots.party_id, lots.lot_type, lots.quantity, lots.created_at, lots.expires_at, lots.status, products_1.product_id AS product_id_1, products_1.sku, products_1.name, products_1.cat…
+    params> {'lot_code_1': '%yoghurt%', 'name_2': '%yoghurt%', 'name_3': '%yoghurt%', 'lot_type_1': 'STOCK', 'param_1': 3, 'param_2': 0}
+  -> 567 lots match; first: [('RS-261030-18', 'Fruit yoghurt 400 g', 'SuperSave Jayanagar'), ('RS-261030-17', 'Fruit yoghurt 400 g', 'SuperSave Jayanagar')]
+
+--- AGGREGATE  services.inventory_by_party(limit=3)  [LEFT JOIN + GROUP BY + conditional count]
+    SQL> SELECT parties.name, parties.party_type, count(lots.lot_id) AS lots, coalesce(sum(lots.quantity), %(coalesce_1)s::INTEGER) AS quantity, count(CASE WHEN (lots.status = %(status_1)s::VARCHAR) THEN %(param_1)s::INTEGER END) AS on_hol…
+    params> {'coalesce_1': 0, 'status_1': 'HOLD', 'param_1': 1, 'param_2': 3}
+  -> Aarav Dairy Works            lots=415  qty= 3,555,100 on_hold=0
+  -> Chennai Distribution Hub     lots=142  qty= 1,110,875 on_hold=0
+  -> Bengaluru Distribution Hub   lots=142  qty= 1,140,925 on_hold=0
+
+--- SQL INJECTION attempt  services.list_lots(search="'; DROP TABLE lots; --")  [value is a bound parameter]
+    SQL> SELECT count(*) AS count_1 FROM (SELECT lots.lot_id AS lot_id, lots.lot_code AS lot_code, lots.product_id AS product_id, lots.party_id AS party_id, lots.lot_type AS lot_type, lots.quantity AS quantity, lots.created_at AS created_a…
+    params> {'lot_code_1': "%'; DROP TABLE lots; --%", 'name_1': "%'; DROP TABLE lots; --%", 'name_2': "%'; DROP TABLE lots; --%"}
+    SQL> SELECT lots.lot_id, lots.lot_code, lots.product_id, lots.party_id, lots.lot_type, lots.quantity, lots.created_at, lots.expires_at, lots.status, products_1.product_id AS product_id_1, products_1.sku, products_1.name, products_1.cat…
+    params> {'lot_code_1': "%'; DROP TABLE lots; --%", 'name_2': "%'; DROP TABLE lots; --%", 'name_3': "%'; DROP TABLE lots; --%", 'param_1': 20, 'param_2': 0}
+    SQL> SELECT lots.lot_id FROM lots LIMIT %(param_1)s::INTEGER
+    params> {'param_1': 1}
+  -> matches: 0; lots table still has rows
+
+--- CONSTRAINT  services.create_product(sku='RAW-MILK')  [duplicate -> friendly error]
+    SQL> SAVEPOINT sa_savepoint_3
+    SQL> INSERT INTO products (sku, name, category, temp_min, temp_max, shelf_life_days) VALUES (%(sku)s::VARCHAR, %(name)s::VARCHAR, %(category)s::VARCHAR, %(temp_min)s, %(temp_max)s, %(shelf_life_days)s::INTEGER) RETURNING products.produ…
+    params> {'sku': 'RAW-MILK', 'name': 'dup', 'category': 'RAW', 'temp_min': 0, 'temp_max': 4, 'shelf_life_days': 3}
+    SQL> ROLLBACK TO SAVEPOINT sa_savepoint_3
+  -> ServiceError(409): Already exists: a record with the same unique value is present (products_sku_key).
+
+(rolled back: no data changed)

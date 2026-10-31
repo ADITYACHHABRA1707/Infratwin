@@ -1,0 +1,17 @@
+                                                                                                      List of functions
+ Schema |        Name         | Result data type |                   Argument data types                   | Type | Volatility | Parallel |  Owner   | Security | Access privileges | Language | Internal name | Description 
+--------+---------------------+------------------+---------------------------------------------------------+------+------------+----------+----------+----------+-------------------+----------+---------------+-------------
+ public | sp_change_user_role |                  | IN p_actor integer, IN p_target integer, IN p_role text | proc | volatile   | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+(1 row)
+
+         trigger         |           on_table            
+-------------------------+-------------------------------
+ metadata_insert_trigger | _timescaledb_catalog.metadata
+ trg_lot_audit           | lots
+ trg_blocks_immutable    | blocks
+ trg_tx_immutable        | ledger_tx
+ trg_users_touch         | users
+ trg_users_audit         | users
+ trg_users_keep_admin    | users
+(7 rows)
+

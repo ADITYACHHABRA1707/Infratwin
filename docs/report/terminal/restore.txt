@@ -1,0 +1,20 @@
+$ createdb chaintwin_restored
+$ docker exec -i chaintwin-db pg_restore -U postgres -d chaintwin_restored --no-owner  <  chaintwin_20261031_090050.dump
+
+  table                     live    restored  match
+  parties                     18          18  yes
+  products                     5           5  yes
+  units                       29          29  yes
+  lots                     1,391       1,391  yes
+  lot_flows                1,443       1,443  yes
+  shipments                  412         412  yes
+  custody                  2,370       2,370  yes
+  quality_events             123         123  yes
+  incident_reports           420         420  yes
+  blocks                      34          34  yes
+  ledger_tx                2,812       2,812  yes
+  users                        3           3  yes
+  sensor_readings        681,541     681,541  yes
+
+  restore verified: every table matches
+$ C:\Users\adity\OneDrive\Desktop\infratwin\.venv\Scripts\python.exe scripts/backup.py restore

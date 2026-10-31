@@ -1,0 +1,78 @@
+checking localhost:5434/postgres
+
+  ok  relation parties
+  ok  relation products
+  ok  relation units
+  ok  relation lots
+  ok  relation lot_flows
+  ok  relation shipments
+  ok  relation custody
+  ok  relation sensor_readings
+  ok  relation quality_events
+  ok  relation incidents
+  ok  relation incident_reports
+  ok  relation report_bench
+  ok  relation audit_logs
+  ok  relation blocks
+  ok  relation ledger_tx
+  ok  relation telemetry_windows
+  ok  relation readings_hourly
+  ok  relation sensor_readings_plain
+  ok  extension pgvector
+  ok  lots populated  -- 1,391 rows
+  ok  lot_flows populated  -- 1,443 rows
+  ok  shipments populated  -- 412 rows
+  ok  custody populated  -- 2,370 rows
+  ok  sensor_readings populated  -- 681,541 rows
+  ok  incident_reports populated  -- 420 rows
+  ok  blocks populated  -- 34 rows
+  ok  ledger_tx populated  -- 2,812 rows
+  ok  telemetry_windows populated  -- 816 rows
+  ok  sensor_readings == baseline copy
+  ok  no readings in the default partition  -- 0 stray rows
+  ok  rejects lot with quantity <= 0
+  ok  rejects lot with unknown type
+  ok  rejects duplicate lot code
+  ok  rejects self-referencing flow
+  ok  rejects custody ending before it starts
+  ok  rejects inverted temperature window
+  ok  rejects flow to a lot that does not exist
+  ok  rejects ledger UPDATE
+  ok  rejects ledger DELETE
+  ok  no orphans: flows -> lots  -- 0 orphans
+  ok  no orphans: custody -> lots/units  -- 0 orphans
+  ok  no orphans: readings -> units  -- 0 orphans
+  ok  every non-raw lot has a source
+  ok  batch quantity == sum of consumed inputs
+  ok  no raw lot over-consumed
+  ok  every stock lot traces back to a raw lot  -- 852/852
+  ok  every lot has custody history
+  ok  reefer readings exist only during trips
+  ok  audit trigger fires on a status change
+  ok  anomaly query finds the injected units  -- 3 found
+  ok  exposure join returns lots for the flagged units  -- Pasteuriser Line B: 1 lots, Plant RM Cold Store: 7 lots, FreshMart T Nagar Display: 14 lots
+  ok  scripted failing lot present
+  ok  forward trace reaches batches, finished lots and retailers  -- 28 lots, types ['BATCH', 'FINISHED', 'RAW', 'STOCK']
+  ok  exposure shares stay within (0, 1]  -- min 0.300, max 1.000
+  ok  targeted recall is smaller than recalling everything since arrival  -- 24 lots by genealogy vs 155 without genealogy
+  ok  forward trace terminates on a cycle
+  ok  similar incidents: 'Truck compressor failed and the trailer warm...'  -- top hit REEFER_FAULT
+  ok  similar incidents: 'Power cut in the cold room and temperature r...'  -- top hit COLDROOM_FAULT
+  ok  similar incidents: 'Pasteuriser hold temperature dropped below l...'  -- top hit PROCESS_DEVIATION
+  ok  similar incidents: 'Raw milk lot tested positive for antibiotic ...'  -- top hit SUPPLIER_QUALITY
+  ok  similar incidents: 'Probe reading disagrees with the reference t...'  -- top hit SENSOR_FAULT
+  ok  planner uses the HNSW index  -- index scan
+  ok  ledger: chain internally consistent  -- 34 blocks, 2812 txs, 253 ms
+  ok  ledger: checkpoint saved outside the database
+  ok  ledger: database matches what was signed  -- 1391 lots, 410 hand-offs, 816 sensor windows, 658,378/681,541 readings anchored, 10024 ms
+  ok  tamper caught: Rewrite a trip's temperature record  -- [telemetry] CL-RF-01 2026-10-01 08:28 -> 2026-10-01 11:28: sensor history differs from the anchored digest: ledger has 180 readings (max 3.85 C), data
+  ok  tamper caught: Shrink a lot's quantity  -- [lot] FG-261001-01: database record differs from what was signed: quantity: ledger='4323.33' database='3323.33'
+  ok  tamper caught: Delete a raw-to-batch link  -- [lot] BT-261001-01: database record differs from what was signed: inputs: ledger=[{'flow_type': 'consumed_in', 'lot_code': 'RM-261001-01', 'quantity':
+  ok  tamper caught: Un-recall a recalled lot  -- [status] RM-261011-02: database says OK, ledger says RECALLED
+  ok  tamper caught: Edit a signed ledger record  -- [tx] block 0 tx 10 (LOT_REGISTERED FG-261001-01): payload was altered (payload hash mismatch)
+  ok  tamper caught: Rewrite history and re-mine the chain  -- [tx] block 0 tx 0 (LOT_REGISTERED RM-261001-01): invalid signature from Kaveri Milk Co-op ... (+2 more)
+  ok  tamper scenarios left no trace (rolled back)
+
+72 passed, 0 warnings, 0 failed
+Ready to present.
+$ C:\Users\adity\OneDrive\Desktop\infratwin\.venv\Scripts\python.exe verify.py

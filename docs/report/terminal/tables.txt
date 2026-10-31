@@ -1,0 +1,25 @@
+                         List of relations
+ Schema |           Name            |       Type        |  Owner   
+--------+---------------------------+-------------------+----------
+ public | audit_logs                | table             | postgres
+ public | blocks                    | table             | postgres
+ public | custody                   | table             | postgres
+ public | demo_injection            | table             | postgres
+ public | incident_reports          | table             | postgres
+ public | incidents                 | table             | postgres
+ public | ledger_tx                 | table             | postgres
+ public | lot_flows                 | table             | postgres
+ public | lots                      | table             | postgres
+ public | parties                   | table             | postgres
+ public | products                  | table             | postgres
+ public | quality_events            | table             | postgres
+ public | report_bench              | table             | postgres
+ public | roles                     | table             | postgres
+ public | sensor_readings           | partitioned table | postgres
+ public | sensor_readings_default   | table             | postgres
+ public | shipments                 | table             | postgres
+ public | telemetry_windows         | table             | postgres
+ public | units                     | table             | postgres
+ public | users                     | table             | postgres
+(68 rows)
+

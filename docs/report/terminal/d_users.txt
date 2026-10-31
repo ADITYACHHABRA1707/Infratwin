@@ -1,0 +1,29 @@
+                                           Table "public.users"
+    Column     |           Type           | Collation | Nullable |                Default                 
+---------------+--------------------------+-----------+----------+----------------------------------------
+ user_id       | integer                  |           | not null | nextval('users_user_id_seq'::regclass)
+ email         | text                     |           | not null | 
+ full_name     | text                     |           | not null | 
+ password_hash | text                     |           | not null | 
+ role_id       | integer                  |           | not null | 
+ party_id      | integer                  |           |          | 
+ is_active     | boolean                  |           | not null | true
+ created_at    | timestamp with time zone |           | not null | now()
+ updated_at    | timestamp with time zone |           | not null | now()
+ last_login_at | timestamp with time zone |           |          | 
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (user_id)
+    "idx_users_party" btree (party_id)
+    "idx_users_role" btree (role_id)
+    "users_email_key" UNIQUE CONSTRAINT, btree (email)
+Check constraints:
+    "users_email_format" CHECK (email ~* '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'::text)
+    "users_name_not_blank" CHECK (length(btrim(full_name)) > 0)
+Foreign-key constraints:
+    "users_party_id_fkey" FOREIGN KEY (party_id) REFERENCES parties(party_id) ON DELETE SET NULL
+    "users_role_id_fkey" FOREIGN KEY (role_id) REFERENCES roles(role_id)
+Triggers:
+    trg_users_audit AFTER INSERT OR DELETE OR UPDATE ON users FOR EACH ROW EXECUTE FUNCTION users_audit()
+    trg_users_keep_admin BEFORE DELETE OR UPDATE ON users FOR EACH ROW EXECUTE FUNCTION users_keep_admin()
+    trg_users_touch BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION users_touch()
+

@@ -1,0 +1,39 @@
+POST /auth/login  (admin, wrong password)
+  -> HTTP 401 {"detail":"Incorrect email or password."}
+
+POST /auth/login (admin)  -> HTTP 200  token=eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+POST /auth/login (manager)  -> HTTP 200  token=eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+POST /auth/login (auditor)  -> HTTP 200  token=eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+GET /lots  (no token)
+  -> HTTP 401 {"detail":"Not authenticated"}
+
+GET /auth/me  (manager token)
+  -> HTTP 200 {"user_id":2,"email":"manager@chaintwin.local","full_name":"Mohan Manager","role":"MANAGER","permissions":["lots:write","registry:write","status:change","view"],"pages":["Control tower","Recall simulator","Provenance","Ledger","Registry","Benchmark","The ga...
+
+GET /users  (admin token)
+  -> HTTP 200 {"total":3,"pages":2,"items":[{"user_id":1,"email":"admin@chaintwin.local","full_name":"Asha Admin","role":"ADMIN","is_active":true},{"user_id":2,"email":"manager@chaintwin.local","full_name":"Mohan Manager","role":"MANAGER","is_active":true}]}
+
+GET /users  (manager token)  <- role-based API access
+  -> HTTP 403 {"detail":"role MANAGER may not perform 'users:manage'"}
+
+GET /users  (auditor token)
+  -> HTTP 403 {"detail":"role AUDITOR may not perform 'users:manage'"}
+
+POST /products (auditor token)
+  -> HTTP 403 {"detail":"role AUDITOR may not perform 'registry:write'"}
+
+POST /products (manager, invalid body: shelf_life_days=0)
+  -> HTTP 422 {"detail":[{"type":"greater_than","loc":["body","shelf_life_days"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}
+
+GET /lots?lot_type=STOCK&page=2&page_size=2 (auditor)
+  -> HTTP 200 {"total":852,"page":2,"pages":426,"items":[{"lot_id":1364,"lot_code":"RS-261030-08","lot_type":"STOCK","product":"Toned milk 1 L","holder":"DailyNeeds Velachery","quantity":2683.96,"status":"OK"},{"lot_id":1363,"lot_code":"RS-261030-07","lot_type":"STOCK","...
+
+GET /ledger/verify (auditor)
+  -> HTTP 200 {"ok":true,"blocks":34,"transactions":2812,"problems":[]}
+
+GET /auth/me  (tampered token)
+  -> HTTP 401 {"detail":"Invalid token."}
+
