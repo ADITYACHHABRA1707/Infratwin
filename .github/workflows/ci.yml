@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.CI_DB_PASSWORD }}
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s
+          --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://postgres:${{ secrets.CI_DB_PASSWORD }}@localhost:5432/postgres
+      JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+      SEED_PASSWORD: ${{ secrets.CI_SEED_PASSWORD }}
+      DAYS: "8"
+      BENCH_VECTORS: "2000"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies (without the heavy embedding model)
+        run: |
+          pip install -r requirements-docker.txt pytest httpx
+      - name: Build the schema, seed a small world, create users
+        run: |
+          python run.py schema
+          python run.py seed
+          python run.py optimise
+          python run.py users
+      - name: Test
+        run: python -m pytest tests/ -q
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t chaintwin:ci .
