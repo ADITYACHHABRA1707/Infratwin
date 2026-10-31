@@ -1,0 +1,11 @@
+.venv/
+.git/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+backups/
+legacy/
+docs/report/
+*.pptx
+.ledger_checkpoint.json

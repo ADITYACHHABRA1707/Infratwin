@@ -1,16 +1,18 @@
-# ChainTwin database.
+# ChainTwin.
 #
-# Its own container, volume and host port (5434) so it never touches the old
+#   docker compose up -d db            just the database (what `python run.py up` does)
+#   docker compose --profile app up -d db app api     database + dashboard + REST API
+#
+# Secrets come from .env (git-ignored); see .env.example. Nothing sensitive is written here.
+#
+# The database has its own container, volume and host port (5434) so it never touches the old
 # InfraTwin database (infratwin-db on 5433) or a local PostgreSQL on 5432.
 #
-# timescaledb-ha is used only because it ships pgvector and is already cached on
-# many machines; the schema uses plain PostgreSQL partitioning and needs no
-# TimescaleDB feature. To use a smaller image, swap in:
-#   image: pgvector/pgvector:pg16
-#   volumes: [pgdata:/var/lib/postgresql/data]
+# timescaledb-ha is used only because it ships pgvector and is already cached on many
+# machines; the schema uses plain PostgreSQL partitioning and needs no TimescaleDB feature.
+# To use a smaller image, swap in pgvector/pgvector:pg16.
 
-# An explicit project name stops Compose from adopting the old "infratwin" project
-# (same folder name, same service name) and recreating its container.
+# An explicit project name stops Compose from adopting the old "infratwin" project.
 name: chaintwin
 
 services:
@@ -18,7 +20,7 @@ services:
     image: timescale/timescaledb-ha:pg16
     container_name: chaintwin-db
     environment:
-      POSTGRES_PASSWORD: infra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: postgres
     ports:
       - "5434:5432"
@@ -40,6 +42,32 @@ services:
       - maintenance_work_mem=512MB
       - -c
       - max_wal_size=4GB
+
+  app:
+    profiles: ["app"]
+    build: .
+    image: ${DOCKERHUB_USER:-chaintwin}/chaintwin:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+    ports:
+      - "8501:8501"
+
+  api:
+    profiles: ["app"]
+    image: ${DOCKERHUB_USER:-chaintwin}/chaintwin:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+    command: ["python", "-m", "uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8010:8000"
 
 volumes:
   pgdata:
